@@ -3,7 +3,6 @@
 Sistema de despachos de InnovaTech desplegado en **Amazon EKS**, con pipeline
 **CI/CD en GitHub Actions** (build → push a ECR → deploy) y **autoscaling** por HPA.
 
-> Rellena los `TODO` con tus datos y capturas antes de entregar.
 
 ## 1. Arquitectura final
 
@@ -14,9 +13,8 @@ Sistema de despachos de InnovaTech desplegado en **Amazon EKS**, con pipeline
 - **MySQL 8** interno (`ClusterIP` headless), 2 esquemas: `ventasdb`, `despachosdb`.
 - Comunicación Front → Back por **DNS interno** del clúster.
 
-(URL pública del frontend: `TODO http://<dns-del-elb>`)
+(URL pública del frontend: `http://a8b5441d2fce246e7b3e3de9b387ef3d-474298067.us-east-1.elb.amazonaws.com/`)
 
-Diagrama: ver `GUIA_EP3_PASO_A_PASO.md` sección 0.
 
 ## 2. Roles, redes, autoscaling y balanceadores
 
@@ -32,8 +30,7 @@ Diagrama: ver `GUIA_EP3_PASO_A_PASO.md` sección 0.
 - Workflow: `.github/workflows/deploy.yml`. Dispara en `push` a `main`.
 - Pasos: credenciales AWS → login ECR → build & push de 3 imágenes (tag = SHA del commit) →
   `aws eks update-kubeconfig` → `kubectl set image` + `rollout status`.
-- Secretos del repo: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`
-  (se refrescan cada sesión de Learner Lab).
+- Secretos del repo: `AWS_ACCESS_KEY_ID`, `AWS_SECRET_ACCESS_KEY`, `AWS_SESSION_TOKEN`.
 
 ### Métricas del pipeline (IE6)
 | Métrica | Valor |
@@ -42,17 +39,16 @@ Diagrama: ver `GUIA_EP3_PASO_A_PASO.md` sección 0.
 | Build (3 imágenes) | TODO |
 | Deploy (rollouts) | TODO |
 | Fallos / reintentos | TODO |
-(Capturas del log de Actions: `TODO`)
 
 ## 4. Evidencias
 
-- Frontend público funcionando: `TODO captura`
-- Front → Back operativo (flujo venta→despacho→cierre): `TODO captura`
-- `kubectl get pods,svc,hpa -n innovatech`: `TODO captura`
-- Autoscaling bajo carga (HPA antes/después): `TODO captura`
-- Self-healing (pod borrado se recrea): `TODO captura`
-- Logs (`kubectl logs`): `TODO captura`
-- Pipeline verde en Actions: `TODO captura`
+- Frontend público funcionando
+- Front → Back operativo (flujo venta→despacho→cierre)
+- `kubectl get pods,svc,hpa -n innovatech`
+- Autoscaling bajo carga (HPA antes/después)
+- Self-healing (pod borrado se recrea)
+- Logs (`kubectl logs`)
+- Pipeline verde en Actions
 
 ## 5. Problemas encontrados y cómo se resolvieron
 
@@ -62,11 +58,8 @@ Diagrama: ver `GUIA_EP3_PASO_A_PASO.md` sección 0.
 3. **Tests de contexto fallaban sin MySQL**: la imagen se construye con `-DskipTests`.
 4. **Learner Lab no permite crear roles IAM**: se reutiliza `LabRole`; OIDC desactivado.
 5. **Credenciales temporales en CI/CD**: se documentó el refresco de secretos cada sesión
-   (en producción se usaría OIDC, no permitido en el lab).
-6. **(otros que te hayan salido):** TODO
 
 ## 6. Cómo reproducir
-Ver `GUIA_EP3_PASO_A_PASO.md`. Resumen:
 ```bash
 bash scripts/01-setup-wsl-tools.sh
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
@@ -78,5 +71,5 @@ bash scripts/04-deploy.sh
 ```
 
 ## 7. Integrantes
-- TODO Nombre 1
-- TODO Nombre 2
+- Jorge Farias
+- Sebastian Garrido
