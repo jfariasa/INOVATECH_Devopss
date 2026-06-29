@@ -42,7 +42,7 @@ Sistema de despachos de InnovaTech desplegado en **Amazon EKS**, con pipeline
 
 ## 4. Evidencias
 
-- Frontend público funcionando: <img width="1904" height="1074" alt="image" src="https://github.com/user-attachments/assets/82bf52d2-e785-4b2c-ad83-b962a2c18260" />
+- Frontend público funcionando
 
 - Front → Back operativo (flujo venta→despacho→cierre)
 - `kubectl get pods,svc,hpa -n innovatech`
