@@ -1,0 +1,86 @@
+# Orquestacion LOCAL de desarrollo (IE2 del EFT).
+# Levanta los 4 servicios tal como corren en EKS, pero en tu maquina:
+#   docker compose up --build
+# Entrada:  http://localhost:8080  (frontend + nginx proxy)
+# Swagger ventas:    http://localhost:8081/swagger-ui.html
+# Swagger despachos: http://localhost:8082/swagger-ui.html
+#
+# CLAVE (para defender): el nginx.conf del frontend apunta a "ventas-svc" y
+# "despachos-svc" (nombres de los Service de k8s). Aqui les damos esos mismos
+# nombres como aliases de red, asi la imagen del frontend es IDENTICA en local
+# y en el cluster. Cero cambios entre dev y produccion.
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: innovatech-mysql
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - innovatech-net
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -uroot -p$$MYSQL_ROOT_PASSWORD --silent"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  ventas:
+    build: ./back-ventas-springboot/api-rest-ventas
+    container_name: innovatech-ventas
+    environment:
+      DB_ENDPOINT: mysql
+      DB_PORT: "3306"
+      DB_NAME: ventasdb
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8081:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      innovatech-net:
+        aliases:
+          - ventas-svc
+
+  despachos:
+    build: ./back-bespachos-springboot/api-rest-despacho
+    container_name: innovatech-despachos
+    environment:
+      DB_ENDPOINT: mysql
+      DB_PORT: "3306"
+      DB_NAME: despachosdb
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "8082:8081"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      innovatech-net:
+        aliases:
+          - despachos-svc
+
+  frontend:
+    build: ./front-despacho
+    container_name: innovatech-frontend
+    ports:
+      - "8080:80"
+    depends_on:
+      - ventas
+      - despachos
+    networks:
+      - innovatech-net
+
+networks:
+  innovatech-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
