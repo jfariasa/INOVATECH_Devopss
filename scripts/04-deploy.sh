@@ -15,8 +15,17 @@ for f in infra/k8s/*.yaml; do
   sed "s/<ACCOUNT_ID>/${ACCOUNT_ID}/g" "$f" > "infra/k8s/_rendered/$base"
 done
 
-echo ">> Instalando metrics-server (necesario para HPA)..."
-kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+# --- metrics-server: solo se instala si el cluster NO lo trae ya ---
+# En este modulo, eksctl lo instala como addon al crear el cluster. Instalarlo
+# de nuevo genera un conflicto ("Deployment metrics-server is invalid"), asi
+# que primero comprobamos si existe y solo lo instalamos si falta.
+echo ">> Verificando metrics-server..."
+if kubectl get deployment metrics-server -n kube-system >/dev/null 2>&1; then
+  echo "   metrics-server ya existe (addon del cluster), se omite la instalacion."
+else
+  echo "   metrics-server no encontrado, instalandolo (necesario para HPA)..."
+  kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml
+fi
 
 echo ">> Aplicando manifiestos..."
 kubectl apply -f infra/k8s/_rendered/00-namespace.yaml
@@ -32,6 +41,7 @@ kubectl apply -f infra/k8s/_rendered/06-hpa.yaml
 echo ""
 echo ">> Estado:"
 kubectl get pods,svc,hpa -n innovatech
+
 echo ""
 echo ">> URL publica del frontend (puede tardar 2-3 min en aparecer el DNS):"
 kubectl get svc frontend-svc -n innovatech \
